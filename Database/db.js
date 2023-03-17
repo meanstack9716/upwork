@@ -14,11 +14,22 @@ const connectToDb = async () => {
 };
 
 const insertDocuments = async (collection, documents) => {
-  const result = await collection.insertMany(documents);
-  console.log(
-    `${result.insertedCount} documents were inserted into the collection`
-  );
-  return result.insertedCount;
+  let insertedCount = 0;
+
+  for (const document of documents) {
+    const filter = { title: document.title[0] }; // use title as the unique identifier
+    const update = { $set: document };
+    const options = { upsert: true };
+
+    const result = await collection.updateOne(filter, update, options);
+
+    if (result.upsertedCount > 0) {
+      insertedCount++;
+    }
+  }
+
+  console.log(`${insertedCount} documents were inserted into the collection`);
+  return insertedCount;
 };
 
 module.exports = { connectToDb, insertDocuments };
